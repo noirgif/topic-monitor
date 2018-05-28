@@ -120,17 +120,24 @@ class Node:
                     n = Node(searchTask, self.depth + 1)
                     n.visit(max_depth)
 
+def search(url, depth, handler):
+    """Recurse the webpage, and send the url, along with the webpage, to the handler
+            depth: int, the maximum depth of the search
+            handler: function(url:str, text:str), called when the response is valid
+    """
+    searchTask = URL(url)
+    if not searchTask.valid:
+        print(f"Invalid url {url}")
+        sys.exit(1)
+
+    n = Node(searchTask)
+    pool.append(searchTask.name)
+    n.visit(depth)
+
 if __name__ == '__main__':
     if len(sys.argv) < 2:
         print("Usage: python spider.py [url]")
         sys.exit(0)
 
-    searchTask = URL(sys.argv[1])
-    if not searchTask.valid:
-        print(f"Invalid url {sys.argv[1]}")
-        sys.exit(1)
-
-    n = Node(searchTask)
-    pool.append(searchTask.name)
-    n.visit(DEPTH)
+    search(sys.argv[1], DEPTH, record)
 
