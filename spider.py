@@ -6,8 +6,13 @@ import os
 import sys
 import requests
 import bs4
-import selenium.webdriver
-from selenium.common.exceptions import TimeoutException as WebTimeoutException
+
+SELENIUM = True
+try:
+    import selenium.webdriver
+    from selenium.common.exceptions import TimeoutException as WebTimeoutException
+except ImportError:
+    SELENIUM = False
 
 # store all the visited websites
 pool = set()
@@ -162,6 +167,10 @@ def search(url, depth, handler, html_rendering=False):
             depth: int, the maximum depth of the search
             handler: function(url:str, text:str), called when the response is valid
     """
+    if html_rendering and not SELENIUM:
+        print("Selenium package not found, do not render")
+        html_rendering = False
+        
     searchTask = URL(url)
     if not searchTask.valid:
         print(f"Invalid url {url}")
