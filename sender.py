@@ -8,10 +8,17 @@ class Sender:
         raise NotImplementedError
 
 
+class ConsoleSender(Sender):
+    def send(self, subject, content):
+        print(subject)
+        print(content)
+
 class EmailSender(Sender):
-    def __init__(self, address, password, recipients):
+    def __init__(self, address, password, recipients, host=None):
         self.address = address
         self.username, self.host = re.search("(.*)@(.*)", address).groups()
+        if host:
+            self.host = host
         self.password = password
         self.recipients = recipients
 

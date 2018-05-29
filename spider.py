@@ -111,14 +111,14 @@ class Node:
                 print(f"Invalid URL: {url}")
                 continue
             else:
-                response_handler(url, r.content)
+                response_handler(url, r.content.decode(encoding='utf-8'))
 # if the website has been visited
                 if url in pool:
                     continue
                 else:
                     pool.append(url)
                     n = Node(searchTask, self.depth + 1)
-                    n.visit(max_depth)
+                    n.visit(max_depth, response_handler)
 
 def search(url, depth, handler):
     """Recurse the webpage, and send the url, along with the webpage, to the handler
@@ -132,7 +132,7 @@ def search(url, depth, handler):
 
     n = Node(searchTask)
     pool.append(searchTask.name)
-    n.visit(depth)
+    n.visit(depth, handler)
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:

@@ -1,5 +1,22 @@
 import json
-from sender import EmailSender
+from spider import search
+from sender import ConsoleSender, EmailSender
+import analyzer
+import time
+
+
+def eventloop(sender=ConsoleSender()):
+    words = ['Europe', 'Korea']
+    pattern = analyzer.OrPattern(*[analyzer.Contains(word) for word in words])
+    def handler(url, document):
+        if pattern.search(document):
+            sender.send('Found', document)
+    try:
+        while True:
+            search("http://edition.cnn.com", 2, handler)
+            time.sleep(60)
+    except KeyboardInterrupt:
+        print("Stopped")
 
 if __name__ == '__main__':
     try:
@@ -20,5 +37,4 @@ please edit config.json file""")
         with open("config.json", "w") as config_file:
             json.dump(config, config_file, indent=4)
         exit(0)
-    
-
+    eventloop()
