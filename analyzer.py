@@ -2,6 +2,7 @@
 """
 
 import re
+import bs4
 
 class Pattern:
     """Check if the document have a specific pattern"""
@@ -16,6 +17,19 @@ class Pattern:
     
     def __mul__(self, other):
         return AndPattern(self, other)
+    
+    def __lsub__(self, other):
+        return SubPattern(self, other)
+
+class TruePattern(Pattern):
+    def search(self, document):
+        return True
+
+
+class FalsePattern(Pattern):
+    def search(self, document):
+        return None
+
 
 class AndPattern(Pattern):
     def __init__(self, *patterns):
@@ -40,6 +54,22 @@ class OrPattern(Pattern):
                 return res
         return None
 
+class SubPattern(Pattern):
+    def __init__(self, ours, others):
+        self.ours = ours
+        self.others = others
+    
+    def search(self, document):
+        res = self.ours.search(document)
+        if res is None:
+            return None
+        else:
+            res_t = self.others.search(document)
+            if res_t:
+                return None
+            else:
+                return res
+
 class Contains(Pattern):
     """Check if a document contains a specific word"""
     def __init__(self, word):
@@ -61,6 +91,28 @@ class Contains(Pattern):
                 return None
             except Exception:
                 print("ERROR: Expect str, or str iterable ,got {}".format(document.__module__ + '.' + document.__name__))
+
+def filter_tag(tag):
+    """Limit search to the inner text of specific tags"""
+    def fun(OldPattern):
+        class anon_class(Pattern):
+            def __init__(self, *args, **kwargs):
+                self.pattern = OldPattern(*args, **kwargs)
+
+            def search(self, document):
+                html = bs4.BeautifulSoup(document, "html5lib")
+                for elem in html.find_all(tag):
+                    print("Title: ", elem.get_text())
+                    if self.pattern.search(elem.get_text()) is not None:
+                        return True
+                return False
+        return anon_class
+    return fun
+
+@filter_tag('title')
+class TitleContains(Contains):
+    pass
+
 
 if __name__ == '__main__':
     doc = ["hello", "world"]

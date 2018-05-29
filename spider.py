@@ -6,9 +6,11 @@ import os
 import sys
 import requests
 import bs4
+import selenium.webdriver
+from selenium.common.exceptions import TimeoutException as WebTimeoutException
 
 # store all the visited websites
-pool = []
+pool = set()
 
 # the search depth of the first search
 DEPTH = 2
@@ -56,18 +58,28 @@ class Node:
     Node: a website in the deep-first traverse of the websites
     """
     def __init__(self, url, depth = 0):
+        if depth == 0:
+            pool.clear()
         self.url = url
 # depth is the depth of the current node in the search
         self.depth = depth
 
-    def visit(self, max_depth = DEPTH, response_handler=record):
+    def visit(self, max_depth = DEPTH, response_handler=record, html_rendering=False):
         """Recurse the webpage, and send the url, along with the webpage, to the handler
             max_depth: int, 
             response_handler: function(url:str, text:str), called when the response is valid
         """
         if self.depth >= max_depth:
             return
+        if self.url.name in pool:
+            return
+        else:
+            pool.add(self.url.name)
+        
         print(f"Requesting {self.url.name}...")
+
+        if html_rendering:
+            browser = selenium.webdriver.Firefox()
         
 # host for relative href
         try:
@@ -77,50 +89,75 @@ class Node:
 
 # indicate if the request is successful
         flag = False
+        site = ''
+
         for req in self.url.request_string():
-            try:
-                print(f"Site: {req}")
-                r = requests.get(req, timeout = 3)
-                if r.status_code != 200:
-                    print("Warning: HTTP response for {req} is {r.status_code} but 200")
-                else:
-                    print("OK")
-                    flag = True
-            except requests.exceptions.Timeout:
-                print(f"Request time out : {req}")
-            except Exception:
-                print(f"Failed to connect : {req}")
+            if html_rendering:
+                # render webpage
+                browser.set_page_load_timeout(10)
+                browser.set_script_timeout(5)
+                try:
+                    browser.get(req)
+                except WebTimeoutException:
+                    pass
+                html = browser.execute_script("return new XMLSerializer().serializeToString(document)")
+                browser.stop_client()
+                site = bs4.BeautifulSoup(html, 'html5lib')
+            else:
+                try:
+                    # print(f"Site: {req}")
+                    r = requests.get(req, timeout = 3)
+                    if r.status_code != 200:
+                        print("Warning: HTTP response for {req} is {r.status_code} but 200")
+                    else:
+                        # print("OK")
+                        flag = True
+                        site = bs4.BeautifulSoup(r.content, 'html5lib')
+                        break
+                except requests.exceptions.Timeout:
+                    # print(f"Request time out : {req}")
+                    pass
+                except Exception:
+                    # print(f"Failed to connect : {req}")
+                    pass
+        print("Done")
 
         if not flag:
             return
 
         urls = []
-        site = bs4.BeautifulSoup(r.content, 'html5lib')
 
+        # handle the response
+        if html_rendering:
+            response_handler(self.url.name, html)
+        else:
+            response_handler(self.url.name, r.content.decode(encoding='utf-8'))
+
+        # find successors
         for tag in site.find_all('a'):
             urls.append(tag.get("href"))
         
         for url in urls:
             if url is None or not len(url):
                 continue
-# add host if started with a slash
+            # add host if started with a slash
             if url[0] == '/':
                 url = host + url
+            url = url.rstrip('/')
+
+            # print("Link to", url)
             searchTask = URL(url)
             if not searchTask.valid:
-                print(f"Invalid URL: {url}")
+                # print(f"Invalid URL: {url}")
                 continue
             else:
-                response_handler(url, r.content.decode(encoding='utf-8'))
-# if the website has been visited
-                if url in pool:
+                # if the website has been visited
+                if searchTask.name in pool:
                     continue
                 else:
-                    pool.append(url)
-                    n = Node(searchTask, self.depth + 1)
-                    n.visit(max_depth, response_handler)
+                    Node(searchTask, self.depth + 1).visit(max_depth, response_handler)
 
-def search(url, depth, handler):
+def search(url, depth, handler, html_rendering=False):
     """Recurse the webpage, and send the url, along with the webpage, to the handler
             depth: int, the maximum depth of the search
             handler: function(url:str, text:str), called when the response is valid
@@ -131,8 +168,7 @@ def search(url, depth, handler):
         sys.exit(1)
 
     n = Node(searchTask)
-    pool.append(searchTask.name)
-    n.visit(depth, handler)
+    n.visit(depth, handler, html_rendering=html_rendering)
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:

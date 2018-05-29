@@ -6,14 +6,18 @@ import time
 
 
 def eventloop(sender=ConsoleSender()):
+    urls = [
+            'http://us.cnn.com/'
+            ]
     words = ['Europe', 'Korea']
-    pattern = analyzer.OrPattern(*[analyzer.Contains(word) for word in words])
+    pattern = analyzer.OrPattern(*[analyzer.TitleContains(word) for word in words])
     def handler(url, document):
         if pattern.search(document):
             sender.send('Found', document)
     try:
         while True:
-            search("http://edition.cnn.com", 2, handler)
+            for url in urls:
+                search(url, 2, handler, html_rendering=True)
             time.sleep(60)
     except KeyboardInterrupt:
         print("Stopped")
@@ -37,4 +41,5 @@ please edit config.json file""")
         with open("config.json", "w") as config_file:
             json.dump(config, config_file, indent=4)
         exit(0)
+    """If it is OK, run the event loop to scrape the websites and send messages"""
     eventloop()
