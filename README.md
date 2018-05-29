@@ -4,6 +4,7 @@ Requires:
 ```
 Python >=3.6
 BeautifulSoup
+selenium(Optional, for webpage rendering)
 ```
 
 ## Code Structure
@@ -11,7 +12,7 @@ BeautifulSoup
 * `spider.py`
     * Function:
         * Scrape websites
-        * Optional web rendering
+        * Optional web rendering(using selenium)
     * API:
         * `search(url, depth, handler)` : recurse the websites and pass it to the handler
 
