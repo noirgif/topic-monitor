@@ -11,6 +11,7 @@ BeautifulSoup
 * `spider.py`
     * Function:
         * Scrape websites
+        * Optional web rendering
     * API:
         * `search(url, depth, handler)` : recurse the websites and pass it to the handler
 
