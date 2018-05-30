@@ -70,6 +70,7 @@ def eventloop(sender=ConsoleSender()):
             if url in send_urls:
                 send_urls.add(url)
                 send_lines.append('{}: {}'.format(title, url))
+
     try:
         while True:
             for url in urls:
@@ -88,13 +89,14 @@ def main():
             config = json.load(config_file)
             email_account = config['email_account']
             email_password = config['email_password']
-            recipients = config['recipients']
+            # recipients = config['recipients']
+            recipients = [account.strip() for account in entry_eml.get().split(';') if account.strip()]
             email_sender = EmailSender(email_account, email_password, recipients)
     except Exception:
         config = {
             "email_account" : "my-mail-account@example.com",
-            "email_password" : "my-mail-password",
-            "recipients" : ["first-recipient@example.com", "second-recipient@example.com"]
+            "email_password" : "my-mail-password"
+            # "recipients" : ["first-recipient@example.com", "second-recipient@example.com"]
         }
         print("""Configuration file not found
 please edit config.json file""")
