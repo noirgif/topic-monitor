@@ -125,7 +125,7 @@ class Node:
                     else:
                         # print("OK")
                         flag = True
-                        html = r.content
+                        html = r.content.decode('utf-8')
                         site = bs4.BeautifulSoup(html, 'html5lib')
                         break
                 except requests.exceptions.Timeout:
