@@ -119,7 +119,7 @@ class Node:
             else:
                 try:
                     # print(f"Site: {req}")
-                    r = requests.get(req, timeout = 3)
+                    r = requests.get(req, timeout = 5)
                     if r.status_code != 200:
                         print(f"Warning: HTTP response for {req} is {r.status_code} but 200")
                     else:

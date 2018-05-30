@@ -47,7 +47,7 @@ class OrPattern(Pattern):
         for pattern in self.patterns:
             res = pattern.search(document)
             if res is not None:
-                return res
+                return True
         return None
 
 class NegPattern(Pattern):
@@ -75,7 +75,7 @@ class SubPattern(Pattern):
             if res_t:
                 return None
             else:
-                return res
+                return True
 
 class Contains(Pattern):
     """Check if a document contains a specific word"""
@@ -90,7 +90,7 @@ class Contains(Pattern):
                 for line in document:
                     res = re.search(self.word, line, re.I)
                     if res:
-                        return res
+                        return True
                 return None
             except Exception:
                 print("ERROR: Expect str, or str iterable ,got {}".format(document.__name__))
