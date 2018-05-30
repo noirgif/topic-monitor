@@ -48,7 +48,7 @@ def eventloop(sender=ConsoleSender()):
 
     pattern = []
     for words in entry_key.get().strip().split(';'):
-        if not words:
+        if not words.strip():
             continue
         subpattern = []
         for word in words.strip().split():
@@ -62,6 +62,7 @@ def eventloop(sender=ConsoleSender()):
             if neg:
                 lo = analyzer.NegPattern(lo)
             subpattern.append(lo)
+        print(subpattern)
         pattern.append(analyzer.AndPattern(*subpattern))
     pattern = analyzer.OrPattern(*pattern)
 
@@ -110,7 +111,7 @@ please edit config.json file""")
             json.dump(config, config_file, indent=4)
         exit(0)
     """If it is OK, run the event loop to scrape the websites and send messages"""
-    eventloop(email_sender)
+    eventloop()
 
 
 frame5 = tkinter.Frame(top)

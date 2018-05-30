@@ -102,8 +102,8 @@ class Node:
         for req in self.url.request_string():
             if html_rendering:
                 # render webpage
-                browser.set_page_load_timeout(2)
-                browser.set_script_timeout(1)
+                browser.set_page_load_timeout(10)
+                browser.set_script_timeout(5)
                 try:
                     browser.get(req)
                 except WebTimeoutException:
