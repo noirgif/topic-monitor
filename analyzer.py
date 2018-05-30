@@ -102,7 +102,6 @@ def filter_tag(tag):
             def search(self, document):
                 html = bs4.BeautifulSoup(document, "html5lib")
                 for elem in html.find_all(tag):
-                    print("Title: ", elem.get_text())
                     if self.pattern.search(elem.get_text()) is not None:
                         return True
                 return False

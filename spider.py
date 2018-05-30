@@ -11,6 +11,7 @@ SELENIUM = True
 try:
     import selenium.webdriver
     from selenium.common.exceptions import TimeoutException as WebTimeoutException
+    from selenium.common.exceptions import WebDriverException
 except ImportError:
     SELENIUM = False
 
@@ -69,10 +70,11 @@ class Node:
 # depth is the depth of the current node in the search
         self.depth = depth
 
-    def visit(self, max_depth = DEPTH, response_handler=record, html_rendering=False):
+    def visit(self, max_depth = DEPTH, response_handler=record, html_rendering=False, no_expand=lambda url, doc: True):
         """Recurse the webpage, and send the url, along with the webpage, to the handler
             max_depth: int, 
             response_handler: function(url:str, text:str), called when the response is valid
+            no_expand: function(url:str, doc:str), to determine whether to expand current node
         """
         if self.depth >= max_depth:
             return
@@ -94,30 +96,36 @@ class Node:
 
 # indicate if the request is successful
         flag = False
-        site = ''
+        site = None
+        html = ''
 
         for req in self.url.request_string():
             if html_rendering:
                 # render webpage
-                browser.set_page_load_timeout(10)
-                browser.set_script_timeout(5)
+                browser.set_page_load_timeout(2)
+                browser.set_script_timeout(1)
                 try:
                     browser.get(req)
                 except WebTimeoutException:
                     pass
+                except WebDriverException:
+                    return
                 html = browser.execute_script("return new XMLSerializer().serializeToString(document)")
                 browser.stop_client()
+                if html:
+                    flag = True
                 site = bs4.BeautifulSoup(html, 'html5lib')
             else:
                 try:
                     # print(f"Site: {req}")
                     r = requests.get(req, timeout = 3)
                     if r.status_code != 200:
-                        print("Warning: HTTP response for {req} is {r.status_code} but 200")
+                        print(f"Warning: HTTP response for {req} is {r.status_code} but 200")
                     else:
                         # print("OK")
                         flag = True
-                        site = bs4.BeautifulSoup(r.content, 'html5lib')
+                        html = r.content
+                        site = bs4.BeautifulSoup(html, 'html5lib')
                         break
                 except requests.exceptions.Timeout:
                     # print(f"Request time out : {req}")
@@ -133,24 +141,28 @@ class Node:
         urls = []
 
         # handle the response
-        if html_rendering:
-            response_handler(self.url.name, html)
-        else:
-            response_handler(self.url.name, r.content.decode(encoding='utf-8'))
+        response_handler(self.url.name, r.content.decode(encoding='utf-8'))
 
         # find successors
         for tag in site.find_all('a'):
-            urls.append(tag.get("href"))
+            urls.append(tag.get('href'))
+            # print('Link to', tag.get('href'))
+        
+        if no_expand(self.url.name, html):
+            # stop expanding
+            return
         
         for url in urls:
-            if url is None or not len(url):
+            if not url:
                 continue
             # add host if started with a slash
             if url[0] == '/':
-                url = host + url
+                if len(url) > 1 and url[1] == '/':
+                    url = url.lstrip('/')
+                else:
+                    url = host + url
             url = url.rstrip('/')
 
-            # print("Link to", url)
             searchTask = URL(url)
             if not searchTask.valid:
                 # print(f"Invalid URL: {url}")
