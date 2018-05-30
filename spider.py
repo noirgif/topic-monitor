@@ -70,7 +70,7 @@ class Node:
 # depth is the depth of the current node in the search
         self.depth = depth
 
-    def visit(self, max_depth = DEPTH, response_handler=record, html_rendering=False, no_expand=lambda url, doc: True):
+    def visit(self, max_depth = DEPTH, response_handler=record, html_rendering=False, no_expand=lambda url, doc: False):
         """Recurse the webpage, and send the url, along with the webpage, to the handler
             max_depth: int, 
             response_handler: function(url:str, text:str), called when the response is valid
@@ -114,6 +114,7 @@ class Node:
                 browser.stop_client()
                 if html:
                     flag = True
+                    break
                 site = bs4.BeautifulSoup(html, 'html5lib')
             else:
                 try:
@@ -146,7 +147,7 @@ class Node:
         # find successors
         for tag in site.find_all('a'):
             urls.append(tag.get('href'))
-            # print('Link to', tag.get('href'))
+            print('Link to', tag.get('href'))
         
         if no_expand(self.url.name, html):
             # stop expanding
