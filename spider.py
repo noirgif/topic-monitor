@@ -147,7 +147,7 @@ class Node:
         # find successors
         for tag in site.find_all('a'):
             urls.append(tag.get('href'))
-            print('Link to', tag.get('href'))
+            # print('Link to', tag.get('href'))
         
         if no_expand(self.url.name, html):
             # stop expanding

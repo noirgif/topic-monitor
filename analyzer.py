@@ -21,14 +21,11 @@ class Pattern:
     def __lsub__(self, other):
         return SubPattern(self, other)
 
-class TruePattern(Pattern):
-    def search(self, document):
-        return True
+TruePattern = Pattern()
+TruePattern.search = lambda self, doc: True
 
-
-class FalsePattern(Pattern):
-    def search(self, document):
-        return None
+FalsePattern = Pattern()
+FalsePattern.search = lambda self, doc: None
 
 
 class AndPattern(Pattern):
@@ -53,6 +50,17 @@ class OrPattern(Pattern):
             if res is not None:
                 return res
         return None
+
+class NegPattern(Pattern):
+    def __init__(self, pattern):
+        self.pattern = pattern
+    
+    def search(self, document):
+        res = self.pattern.search()
+        if res:
+            return None
+        else:
+            return True
 
 class SubPattern(Pattern):
     def __init__(self, ours, others):
