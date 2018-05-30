@@ -5,6 +5,19 @@ Requires:
 Python >=3.6
 BeautifulSoup
 selenium(Optional, for webpage rendering)
+tkinter(Optional, for GUI)
+```
+
+## How to use
+
+Command line:
+```
+python main.py
+```
+
+GUI version:
+```
+python gui_main.py
 ```
 
 ## Code Structure
