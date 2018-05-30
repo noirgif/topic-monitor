@@ -106,7 +106,7 @@ def filter_tag(tag):
                 for elem in html.find_all(tag):
                     if self.pattern.search(elem.get_text()) is not None:
                         return True
-                return False
+                return None
         return anon_class
     return fun
 
@@ -129,6 +129,6 @@ if __name__ == '__main__':
 
     import requests
     r = requests.get('http://nir.moe/2018/01/26/ddlc', timeout=3)
-    ddlc = NegPattern(TitleContains('ddlc')) + FalsePattern
+    ddlc = TitleContains('fff') * TruePattern
     print(ddlc.search(r.content.decode('utf-8')))
 
