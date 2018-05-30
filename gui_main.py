@@ -10,10 +10,14 @@ import bs4
 top = tkinter.Tk()
 top.title("Web Monitor and Warning Sender")
 
+html_render = tkinter.IntVar()
+
 frame1 = tkinter.Frame(top)
 label_u = tkinter.Label(frame1, text="URL = ", width='20')
 label_u.pack(side=tkinter.LEFT)
-entry_url = tkinter.Entry(frame1, width='40')
+checkbox_render = tkinter.Checkbutton(frame1, text="Render", variable=html_render)
+checkbox_render.pack(side=tkinter.RIGHT)
+entry_url = tkinter.Entry(frame1, width='32')
 entry_url.pack(side=tkinter.RIGHT)
 
 frame2 = tkinter.Frame(top)
@@ -52,9 +56,9 @@ def eventloop(sender=ConsoleSender()):
                 continue
             # rid '-'
             neg = word[0] == '-'
-            if word[0] == '-':
+            if neg:
                 word = word[1:]
-            lo = analyzer.Contains(word)
+            lo = analyzer.TitleContains(word)
             if neg:
                 lo = analyzer.NegPattern(lo)
             subpattern.append(lo)
@@ -64,17 +68,19 @@ def eventloop(sender=ConsoleSender()):
     send_urls = set()
     send_lines = []
     def handler(url, document):
-        if pattern.search(document):
+        if pattern.search(document) is not None:
             bs = bs4.BeautifulSoup(document, "html5lib")
             title = bs.find('title').get_text()
-            if url in send_urls:
+            if url not in send_urls:
                 send_urls.add(url)
                 send_lines.append('{}: {}'.format(title, url))
 
     try:
         while True:
             for url in urls:
-                search(url, depth, handler, html_rendering=False)
+                url = url.strip()
+                if url:
+                    search(url, depth, handler, html_rendering=html_render.get())
             if (send_lines):
                 sender.send('Topic Alert', """The messages you subscribed are found here:
 {}""".format('\n'.join(send_lines)))

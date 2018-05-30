@@ -8,23 +8,25 @@ import bs4
 
 def eventloop(sender=ConsoleSender()):
     urls = [
-            'http://us.cnn.com/'
+            'cn.bing.com'
             ]
-    words = ['FBI']
+    words = ['bing']
     pattern = analyzer.OrPattern(*[analyzer.TitleContains(word) for word in words])
     send_urls = set()
     send_lines = []
     def handler(url, document):
-        if pattern.search(document):
+        res = pattern.search(document)
+        print(res)
+        if res:
             bs = bs4.BeautifulSoup(document, "html5lib")
             title = bs.find('title').get_text()
-            if url in send_urls:
+            if url not in send_urls:
                 send_urls.add(url)
                 send_lines.append('{}: {}'.format(title, url))
     try:
         while True:
             for url in urls:
-                search(url, 2, handler, html_rendering=True)
+                search(url, 1, handler, html_rendering=False)
             if (send_lines):
                 sender.send('Topic Alert', """The messages you subscribed are found here:
 {}""".format('\n'.join(send_lines)))
@@ -53,4 +55,4 @@ please edit config.json file""")
             json.dump(config, config_file, indent=4)
         exit(0)
     """If it is OK, run the event loop to scrape the websites and send messages"""
-    eventloop(email_sender)
+    eventloop()
