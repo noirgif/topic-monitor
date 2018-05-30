@@ -77,16 +77,12 @@ class Contains(Pattern):
     
     def search(self, document):
         if isinstance(document, str):
-            res = document.find(self.word)
-            if res == -1:
-                return
-            else:
-                return res
+            return re.search(self.word, document, re.I)
         else:
             try:
                 for line in document:
-                    res = line.find(self.word)
-                    if res != -1:
+                    res = re.search(self.word, line, re.I)
+                    if res:
                         return res
                 return None
             except Exception:

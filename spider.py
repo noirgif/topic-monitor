@@ -141,7 +141,7 @@ class Node:
         urls = []
 
         # handle the response
-        response_handler(self.url.name, r.content.decode(encoding='utf-8'))
+        response_handler(self.url.name, html)
 
         # find successors
         for tag in site.find_all('a'):
