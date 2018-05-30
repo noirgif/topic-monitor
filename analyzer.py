@@ -22,10 +22,10 @@ class Pattern:
         return SubPattern(self, other)
 
 TruePattern = Pattern()
-TruePattern.search = lambda self, doc: True
+TruePattern.search = lambda doc: True
 
 FalsePattern = Pattern()
-FalsePattern.search = lambda self, doc: None
+FalsePattern.search = lambda doc: None
 
 
 class AndPattern(Pattern):
@@ -33,11 +33,10 @@ class AndPattern(Pattern):
         self.patterns = patterns
     
     def search(self, document):
-        res = True
         for pattern in self.patterns:
             if pattern.search(document) is None:
                 return None
-        return res
+        return True
 
 class OrPattern(Pattern):
     def __init__(self, *patterns):
@@ -130,6 +129,6 @@ if __name__ == '__main__':
 
     import requests
     r = requests.get('http://nir.moe/2018/01/26/ddlc', timeout=3)
-    ddlc = NegPattern(TitleContains('ddlc'))
+    ddlc = NegPattern(TitleContains('ddlc')) + FalsePattern
     print(ddlc.search(r.content.decode('utf-8')))
 
