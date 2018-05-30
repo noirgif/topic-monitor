@@ -136,6 +136,9 @@ class Node:
                     pass
         print("Done")
 
+        if not site:
+            return
+
         if not flag:
             return
 

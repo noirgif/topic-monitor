@@ -33,10 +33,9 @@ class AndPattern(Pattern):
         self.patterns = patterns
     
     def search(self, document):
-        res = None
+        res = True
         for pattern in self.patterns:
-            res = pattern.search(document)
-            if res is None:
+            if pattern.search(document) is None:
                 return None
         return res
 
@@ -56,7 +55,7 @@ class NegPattern(Pattern):
         self.pattern = pattern
     
     def search(self, document):
-        res = self.pattern.search()
+        res = self.pattern.search(document)
         if res:
             return None
         else:
@@ -94,7 +93,7 @@ class Contains(Pattern):
                         return res
                 return None
             except Exception:
-                print("ERROR: Expect str, or str iterable ,got {}".format(document.__module__ + '.' + document.__name__))
+                print("ERROR: Expect str, or str iterable ,got {}".format(document.__name__))
 
 def filter_tag(tag):
     """Limit search to the inner text of specific tags"""
@@ -128,4 +127,9 @@ if __name__ == '__main__':
     print(doc, "xmy", xmy.search(doc))
     print(docstr, "xpy", xpy.search(docstr))
     print(docstr, "xmy", xmy.search(docstr))
+
+    import requests
+    r = requests.get('http://nir.moe/2018/01/26/ddlc', timeout=3)
+    ddlc = NegPattern(TitleContains('ddlc'))
+    print(ddlc.search(r.content.decode('utf-8')))
 
