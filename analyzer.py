@@ -18,7 +18,7 @@ class Pattern:
     def __mul__(self, other):
         return AndPattern(self, other)
     
-    def __lsub__(self, other):
+    def __sub__(self, other):
         return SubPattern(self, other)
 
 TruePattern = Pattern()
@@ -97,17 +97,30 @@ class Contains(Pattern):
 def filter_tag(tag):
     """Limit search to the inner text of specific tags"""
     def fun(OldPattern):
-        class anon_class(Pattern):
-            def __init__(self, *args, **kwargs):
-                self.pattern = OldPattern(*args, **kwargs)
+        if isinstance(OldPattern, type):
+            class anon_class(Pattern):
+                def __init__(self, *args, **kwargs):
+                    self.pattern = OldPattern(*args, **kwargs)
 
-            def search(self, document):
-                html = bs4.BeautifulSoup(document, "html5lib")
-                for elem in html.find_all(tag):
-                    if self.pattern.search(elem.get_text()) is not None:
-                        return True
-                return None
-        return anon_class
+                def search(self, document):
+                    html = bs4.BeautifulSoup(document, "html5lib")
+                    for elem in html.find_all(tag):
+                        if self.pattern.search(elem.get_text()) is not None:
+                            return True
+                    return None
+            return anon_class
+        else:
+            class anon_class(Pattern):
+                def __init__(self, pattern):
+                    self.pattern = pattern
+
+                def search(self, document):
+                    html = bs4.BeautifulSoup(document, "html5lib")
+                    for elem in html.find_all(tag):
+                        if self.pattern.search(elem.get_text()) is not None:
+                            return True
+                    return None
+            return anon_class(OldPattern)
     return fun
 
 @filter_tag('title')

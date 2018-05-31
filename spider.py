@@ -6,6 +6,8 @@ import os
 import sys
 import requests
 import bs4
+import threading
+import time
 
 SELENIUM = True
 try:
@@ -155,7 +157,8 @@ class Node:
         if no_expand(self.url.name, html):
             # stop expanding
             return
-        
+
+        thread_pool = []
         for url in urls:
             if not url:
                 continue
@@ -168,6 +171,7 @@ class Node:
             url = url.rstrip('/')
 
             searchTask = URL(url)
+
             if not searchTask.valid:
                 # print(f"Invalid URL: {url}")
                 continue
@@ -176,7 +180,16 @@ class Node:
                 if searchTask.name in pool:
                     continue
                 else:
-                    Node(searchTask, self.depth + 1).visit(max_depth, response_handler)
+                    thread = threading.Thread(target=Node(searchTask, self.depth + 1).visit, args=(max_depth, response_handler))
+                    thread.start()
+                    thread_pool.append(thread)
+
+        while thread_pool:
+            for thread in thread_pool:
+                thread.join(timeout=0)
+                if not thread.is_alive():
+                    thread_pool.remove(thread)
+            time.sleep(1)
 
 def search(url, depth, handler, html_rendering=False):
     """Recurse the webpage, and send the url, along with the webpage, to the handler
