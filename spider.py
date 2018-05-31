@@ -22,9 +22,9 @@ try:
             self.html = None
             self.ready = False
             self.app = QApplication(sys.argv)
-            self.timer = QTimer()
-        
             QWebEngineView.__init__(self)
+
+            self.timer = QTimer()
 
             self.loadFinished.connect(self._loadFinished)
             self.timer.timeout.connect(self.app.processEvents)
@@ -50,8 +50,6 @@ try:
         def _loadFinished(self, result):
             self.page().toHtml(self._update_html)
 
-    renderer = Renderer()
-
 except ImportError:
     QTWEBENGINE = False
 
@@ -60,6 +58,8 @@ pool = set()
 
 # the search depth of the first search
 DEPTH = 2
+
+renderer = Renderer()
 
 
 class URL:
