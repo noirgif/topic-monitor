@@ -8,11 +8,11 @@ import bs4
 
 def eventloop(sender=ConsoleSender()):
     urls = [
-            'www.ustc.edu.cn'
+            'www.sohu.com'
             ]
-    words = ['招生']
+    words = ['特朗普']
     pattern = analyzer.OrPattern(*[analyzer.Contains(word) for word in words])
-    pattern = pattern - analyzer.Contains('研究生')
+    pattern = pattern - analyzer.Contains('歧视')
     pattern = analyzer.filter_tag('title')(pattern)
 
     send_urls = set()
@@ -33,8 +33,11 @@ def eventloop(sender=ConsoleSender()):
             if (send_lines):
                 sender.send('Topic Alert', """The messages you subscribed are found here:
 {}""".format('\n'.join(send_lines)))
-            send_lines = []
-            time.sleep(900)
+                send_lines = []
+                print("Sent")
+            sleep_secs = 900
+            print(f'Next scan in {sleep_secs} seconds')
+            time.sleep(sleep_secs)
     except KeyboardInterrupt:
         print("Stopped")
 

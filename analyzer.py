@@ -31,6 +31,12 @@ FalsePattern.search = lambda doc: None
 class AndPattern(Pattern):
     def __init__(self, *patterns):
         self.patterns = patterns
+
+    def __repr__(self):
+        if self.patterns:
+            return f"({' & '.join(map(str, self.patterns))})"
+        else:
+            return f'True'
     
     def search(self, document):
         for pattern in self.patterns:
@@ -42,6 +48,12 @@ class OrPattern(Pattern):
     def __init__(self, *patterns):
         self.patterns = patterns
     
+    def __repr__(self):
+        if self.patterns:
+            return f"({' | '.join(map(str, self.patterns))})"
+        else:
+            return f'False'
+    
     def search(self, document):
         for pattern in self.patterns:
             res = pattern.search(document)
@@ -52,6 +64,9 @@ class OrPattern(Pattern):
 class NegPattern(Pattern):
     def __init__(self, pattern):
         self.pattern = pattern
+
+    def __repr__(self):
+        return f'~{str(self.pattern)}'
     
     def search(self, document):
         res = self.pattern.search(document)
@@ -81,6 +96,9 @@ class Contains(Pattern):
     def __init__(self, word):
         self.word = word
     
+    def __repr__(self):
+        return f"'{self.word}'"
+    
     def search(self, document):
         if isinstance(document, str):
             return re.search(self.word, document, re.I)
@@ -101,6 +119,9 @@ def filter_tag(tag):
             class anon_class(Pattern):
                 def __init__(self, *args, **kwargs):
                     self.pattern = OldPattern(*args, **kwargs)
+                
+                def __repr__(self):
+                    return f'({str(self.pattern)}) in <{tag}>'
 
                 def search(self, document):
                     html = bs4.BeautifulSoup(document, "html5lib")
@@ -113,6 +134,9 @@ def filter_tag(tag):
             class anon_class(Pattern):
                 def __init__(self, pattern):
                     self.pattern = pattern
+                
+                def __repr__(self):
+                    return f'({str(self.pattern)}) in <{tag}>'
 
                 def search(self, document):
                     html = bs4.BeautifulSoup(document, "html5lib")
@@ -142,6 +166,6 @@ if __name__ == '__main__':
 
     import requests
     r = requests.get('http://nir.moe/2018/01/26/ddlc', timeout=3)
-    ddlc = TitleContains('fff') * TruePattern
-    print(ddlc.search(r.content.decode('utf-8')))
+    ddlc = TitleContains('ddlc') * TruePattern
+    print(ddlc.search(r.text))
 

@@ -59,13 +59,15 @@ def eventloop(sender=ConsoleSender()):
             neg = word[0] == '-'
             if neg:
                 word = word[1:]
-            lo = analyzer.TitleContains(word)
+            lo = analyzer.Contains(word)
             if neg:
                 lo = analyzer.NegPattern(lo)
             subpattern.append(lo)
         # print(subpattern)
         pattern.append(analyzer.AndPattern(*subpattern))
     pattern = analyzer.OrPattern(*pattern)
+    pattern = analyzer.filter_tag('title')(pattern)
+    print(pattern)
 
     send_urls = set()
     send_lines = []
@@ -86,8 +88,11 @@ def eventloop(sender=ConsoleSender()):
             if (send_lines):
                 sender.send('Topic Alert', """The messages you subscribed are found here:
 {}""".format('\n'.join(send_lines)))
-            send_lines = []
-            time.sleep(900)
+                send_lines = []
+                print("Sent")
+            sleep_secs = 900
+            print(f'Next scan in {sleep_secs} seconds')
+            time.sleep(sleep_secs)
     except KeyboardInterrupt:
         print("Stopped")
 
