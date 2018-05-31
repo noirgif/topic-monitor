@@ -3,8 +3,9 @@
 Requires:
 ```
 Python >=3.6
+requests
 BeautifulSoup
-selenium(Optional, for webpage rendering)
+PyQt5(Optional, for webpage rendering)
 tkinter(Optional, for GUI)
 ```
 
