@@ -7,13 +7,30 @@ import time
 import bs4
 
 def eventloop(sender=ConsoleSender()):
-    urls = [
-            'www.sohu.com'
-            ]
-    words = ['特朗普']
-    pattern = analyzer.OrPattern(*[analyzer.Contains(word) for word in words])
-    pattern = pattern - analyzer.Contains('歧视')
+    urls = input('URLs(separate with semicolons):').split('; ')
+    wordinput = input('Keywords(separate with semicolons):')
+
+    pattern = []
+    for words in wordinput.split(';'):
+        if not words.strip():
+            continue
+        subpattern = []
+        for word in words.strip().split():
+            if not word:
+                continue
+            # rid '-'
+            neg = word[0] == '-'
+            if neg:
+                word = word[1:]
+            lo = analyzer.Contains(word)
+            if neg:
+                lo = analyzer.NegPattern(lo)
+            subpattern.append(lo)
+        # print(subpattern)
+        pattern.append(analyzer.AndPattern(*subpattern))
+    pattern = analyzer.OrPattern(*pattern)
     pattern = analyzer.filter_tag('title')(pattern)
+
 
     send_urls = set()
     send_lines = []
