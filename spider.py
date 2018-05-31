@@ -49,6 +49,9 @@ try:
 
         def _loadFinished(self, result):
             self.page().toHtml(self._update_html)
+
+    renderer = Renderer()
+
 except ImportError:
     QTWEBENGINE = False
 
@@ -133,10 +136,6 @@ class Node:
         site = None
         html = ''
 
-
-        if html_rendering:
-            renderer = Renderer()
-
         for req in self.url.request_string():
             if html_rendering:
                 renderer.render(req, timeout=10)
@@ -164,7 +163,6 @@ class Node:
                 except Exception:
                     # print(f"Failed to connect : {req}")
                     pass
-        print("Done")
 
         if not site:
             return
