@@ -9,13 +9,47 @@ import bs4
 import threading
 import time
 
-SELENIUM = True
+
+QTWEBENGINE = True
 try:
-    import selenium.webdriver
-    from selenium.common.exceptions import TimeoutException as WebTimeoutException
-    from selenium.common.exceptions import WebDriverException
+    import sys 
+    from PyQt5.QtCore import QUrl, QTimer
+    from PyQt5.QtWidgets import QApplication
+    from PyQt5.QtWebEngineWidgets import QWebEngineView
+
+    class Render(QWebEngineView):
+        def __init__(self, url, timeout=10):
+            self.html = None
+            self.ready = False
+            self.app = QApplication(sys.argv)
+            self.timer = QTimer()
+        
+            QWebEngineView.__init__(self)
+
+            self.loadFinished.connect(self._loadFinished)
+            self.timer.timeout.connect(self.app.processEvents)
+
+            QTimer.singleShot(timeout * 1000, self._loadTimeoutError)
+            self.timer.start(500)
+        
+            self.load(QUrl(url))
+            self.app.exec_()
+
+        def _loadTimeoutError(self):
+            print("Load timeout")
+            self.stop()
+            self.loadFinished.emit(False)
+
+        def _update_html(self, data):
+            print("HTML Updated")
+            self.html = data
+            self.ready = True
+            self.app.quit()
+
+        def _loadFinished(self, result):
+            self.page().toHtml(self._update_html)
 except ImportError:
-    SELENIUM = False
+    QTWEBENGINE = False
 
 # store all the visited websites
 pool = set()
@@ -86,9 +120,6 @@ class Node:
             pool.add(self.url.name)
         
         print(f"Requesting {self.url.name}...")
-
-        if html_rendering:
-            browser = selenium.webdriver.Firefox()
         
 # host for relative href
         try:
@@ -103,20 +134,10 @@ class Node:
 
         for req in self.url.request_string():
             if html_rendering:
-                # render webpage
-                browser.set_page_load_timeout(10)
-                browser.set_script_timeout(5)
-                try:
-                    browser.get(req)
-                except WebTimeoutException:
-                    pass
-                except WebDriverException:
-                    return
-                html = browser.execute_script("return new XMLSerializer().serializeToString(document)")
-                browser.stop_client()
-                if html:
-                    flag = True
-                    break
+                render = Render(req, timeout=10)
+                while not render.ready:
+                    time.sleep(1)
+                html = render.html
                 site = bs4.BeautifulSoup(html, 'html5lib')
             else:
                 try:
@@ -196,8 +217,8 @@ def search(url, depth, handler, html_rendering=False):
             depth: int, the maximum depth of the search
             handler: function(url:str, text:str), called when the response is valid
     """
-    if html_rendering and not SELENIUM:
-        print("Selenium package not found, do not render")
+    if html_rendering and not QTWEBENGINE:
+        print("QtWebEngine package not found, do not render")
         html_rendering = False
         
     searchTask = URL(url)
