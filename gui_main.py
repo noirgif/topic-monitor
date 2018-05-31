@@ -63,7 +63,7 @@ def eventloop(sender=ConsoleSender()):
             if neg:
                 lo = analyzer.NegPattern(lo)
             subpattern.append(lo)
-        print(subpattern)
+        # print(subpattern)
         pattern.append(analyzer.AndPattern(*subpattern))
     pattern = analyzer.OrPattern(*pattern)
 

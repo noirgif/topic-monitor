@@ -8,10 +8,13 @@ import bs4
 
 def eventloop(sender=ConsoleSender()):
     urls = [
-            'cn.bing.com'
+            'www.ustc.edu.cn'
             ]
-    words = ['bing']
-    pattern = analyzer.OrPattern(*[analyzer.TitleContains(word) for word in words])
+    words = ['招生']
+    pattern = analyzer.OrPattern(*[analyzer.Contains(word) for word in words])
+    pattern = pattern - analyzer.Contains('研究生')
+    pattern = analyzer.filter_tag('title')(pattern)
+
     send_urls = set()
     send_lines = []
     def handler(url, document):
@@ -26,7 +29,7 @@ def eventloop(sender=ConsoleSender()):
     try:
         while True:
             for url in urls:
-                search(url, 1, handler, html_rendering=False)
+                search(url, 2, handler, html_rendering=False)
             if (send_lines):
                 sender.send('Topic Alert', """The messages you subscribed are found here:
 {}""".format('\n'.join(send_lines)))
@@ -55,4 +58,4 @@ please edit config.json file""")
             json.dump(config, config_file, indent=4)
         exit(0)
     """If it is OK, run the event loop to scrape the websites and send messages"""
-    eventloop()
+    eventloop(email_sender)
