@@ -11,6 +11,7 @@ class Sender:
 class ConsoleSender(Sender):
     def send(self, subject, content):
         print(subject)
+        print(content)
 
 class EmailSender(Sender):
     def __init__(self, address, password, recipients, host=None):
