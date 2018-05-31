@@ -17,8 +17,8 @@ try:
     from PyQt5.QtWidgets import QApplication
     from PyQt5.QtWebEngineWidgets import QWebEngineView
 
-    class Render(QWebEngineView):
-        def __init__(self, url, timeout=10):
+    class Renderer(QWebEngineView):
+        def __init__(self):
             self.html = None
             self.ready = False
             self.app = QApplication(sys.argv)
@@ -28,7 +28,8 @@ try:
 
             self.loadFinished.connect(self._loadFinished)
             self.timer.timeout.connect(self.app.processEvents)
-
+        
+        def render(self, url, timeout=10):
             QTimer.singleShot(timeout * 1000, self._loadTimeoutError)
             self.timer.start(500)
         
@@ -132,13 +133,19 @@ class Node:
         site = None
         html = ''
 
+
+        if html_rendering:
+            renderer = Renderer()
+
         for req in self.url.request_string():
             if html_rendering:
-                render = Render(req, timeout=10)
-                while not render.ready:
+                renderer.render(req, timeout=10)
+                while not renderer.ready:
                     time.sleep(1)
-                html = render.html
+                html = renderer.html
                 site = bs4.BeautifulSoup(html, 'html5lib')
+                if html:
+                    flag = True
             else:
                 try:
                     # print(f"Site: {req}")
